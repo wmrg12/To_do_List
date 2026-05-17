@@ -1,0 +1,19 @@
+extends ../layout
+
+block content
+  h1= title
+  p
+    strong Descripción: 
+    | #{data.description}
+  p
+    strong Estado: 
+    | #{data.completed ? 'Completado' : 'Pendiente'}
+  p
+    strong Creado: 
+    | #{data.createdAt_formatted}
+    
+  hr
+
+  div.d-flex.gap-2.mb-4
+    a.btn.btn-warning(href=`/task/${data._id}?action=update`) Editar Tarea
+    a.btn.btn-danger(href=`/task/${data._id}?action=delete`) Eliminar Tarea

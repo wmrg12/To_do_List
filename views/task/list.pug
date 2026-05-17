@@ -1,0 +1,12 @@
+extends ../layout
+
+block content
+  h1= title
+
+  ul
+    each task in data
+      li
+        a(href=`/task/${task._id}`) #{task.title}
+        |  - #{task.completed ? 'Completado' : 'Pendiente'}
+    else
+      li No hay tareas.
