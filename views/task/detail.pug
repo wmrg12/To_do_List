@@ -3,7 +3,7 @@ extends ../layout
 block content
   h1= title
   p
-    strong Descripción: 
+    strong Descripcion: 
     | #{data.description}
   p
     strong Estado: 
@@ -14,6 +14,6 @@ block content
     
   hr
 
-  div.d-flex.gap-2.mb-4
-    a.btn.btn-warning(href=`/task/${data._id}?action=update`) Editar Tarea
-    a.btn.btn-danger(href=`/task/${data._id}?action=delete`) Eliminar Tarea
+  div 
+    a.btn.btn-warning.me-2(href=`/task/${data._id}?action=update`) Actualizar 
+    a.btn.btn-danger(href=`/task/${data._id}?action=delete`) Eliminar 

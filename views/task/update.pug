@@ -3,18 +3,17 @@ extends ../layout
 block content
   h1 #{title}: #{data.title}
   
-  form(method='POST' action=`/task/${data._id}`)
+  form(method='POST' action=`/task/${data._id}?_method=PUT`)
     div.form-group.mb-3
-      label(for='title') Título:
+      label(for='title') Titulo:
       input#title.form-control(type='text', name='title', value=data.title, required='true')
     
     div.form-group.mb-3
-      label(for='description') Descripción:
+      label(for='description') Descripcion:
       textarea#description.form-control(name='description', rows='4')= data.description
     
     div.form-group.mb-3
       div.form-check
-        // checkbox handling in express needs value='true' so we can parse it easily
         input#completed.form-check-input(type='checkbox', name='completed', checked=data.completed, value='true')
         label.form-check-label(for='completed') Marcar como Completado
 

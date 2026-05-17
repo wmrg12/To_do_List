@@ -5,9 +5,9 @@ block content
   h1 #{title}: #{data.title}
   p= data.description
 
-  p ¿Realmente deseas eliminar esta Tarea?
+  p Deseas eliminar esta Tarea?
 
-  form(method='POST' action=`/task/${data._id}`)
+  form(method='POST' action=`/task/${data._id}?_method=DELETE`)
     div.form-group.mb-3
       input#taskid.form-control(type='hidden', name='taskid', value=data._id )
 
