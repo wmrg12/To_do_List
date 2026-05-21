@@ -14,6 +14,9 @@ router.get('/:id', taskController.task_detail);
 // PUT /task/:id -> actualiza uno
 router.put('/:id', taskController.task_update);
 
+// PATCH /task/:id -> actualiza parcialmente
+router.patch('/:id', taskController.task_patch);
+
 // DELETE /task/:id -> elimina uno
 router.delete('/:id', taskController.task_delete);
 
