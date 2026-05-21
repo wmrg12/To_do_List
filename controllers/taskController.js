@@ -163,6 +163,49 @@ exports.task_update = async (req, res, next) => {
   }
 };
 
+exports.task_patch = async (req, res, next) => {
+  try {
+    const updates = {};
+    if (req.body.title !== undefined) {
+      updates.title = req.body.title;
+    }
+    if (req.body.description !== undefined) {
+      updates.description = req.body.description;
+    }
+    if (req.body.completed !== undefined) {
+      updates.completed =
+        req.body.completed === 'true' ||
+        req.body.completed === true;
+    }
+    const updatedTask = await Task.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      { new: true }
+    );
+    if (!updatedTask) {
+      const err = new Error('Tarea no encontrada');
+      err.status = 404;
+      throw err;
+    }
+    renderOrJson(
+      req, res, 'task/detail',
+      { title: updatedTask.title, data: updatedTask },
+      { version: '1.0' },
+      { self: `/task/${updatedTask._id}`, collection: '/task' }
+    );
+  } catch (error) {
+    const status = error.status || 400;
+    renderOrJson(
+      req, res, 'error',
+      { message: error.message, error, data: null },
+      { version: '1.0' },
+      { self: `/task/${req.params.id}` },
+      [{ message: error.message }],
+      status
+    );
+  }
+};
+
 exports.task_delete_get = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id);
