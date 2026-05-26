@@ -25,7 +25,7 @@ let methodOverride;
 try {
   methodOverride = require('method-override');
 } catch(e) {
-  // Fallback silencioso por si aún no corres npm install
+  // Fallback silencioso por si 
 }
 
 if (methodOverride) {
@@ -66,16 +66,16 @@ app.use(function (err, req, res, next) {
     },
     json: () => {
       res.status(status).json({
-        metadata: { version: '1.0' },
-        data: null,
+        metadata: { version: '1.0', status: status },
+        data: [],
         links: { self: req.originalUrl },
         errors: [{ message: err.message }]
       });
     },
     default: () => {
       res.status(status).json({
-        metadata: { version: '1.0' },
-        data: null,
+        metadata: { version: '1.0', status: status },
+        data: [],
         links: { self: req.originalUrl },
         errors: [{ message: err.message }]
       });
