@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Task = require("./models/task");
+const Task = require("./backend_express/models/task");
 
 const mongoDB = "mongodb://cooluser:1234@ac-ecv0hmz-shard-00-00.q3t5u8z.mongodb.net:27017,ac-ecv0hmz-shard-00-01.q3t5u8z.mongodb.net:27017,ac-ecv0hmz-shard-00-02.q3t5u8z.mongodb.net:27017/local_library?ssl=true&replicaSet=atlas-vo850n-shard-0&authSource=admin&retryWrites=true&w=majority";
 
