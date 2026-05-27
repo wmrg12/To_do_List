@@ -10,6 +10,7 @@ const todosRouter = require("./routes/task");
 
 var app = express();
 
+// view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
@@ -19,15 +20,18 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Configuración de method-override
 let methodOverride;
 try {
   methodOverride = require('method-override');
-} catch (e) {
+} catch(e) {
+  // Fallback silencioso por si 
 }
 
 if (methodOverride) {
   app.use(methodOverride('_method'));
 } else {
+  // Fallback temporal
   app.use(function (req, res, next) {
     if (req.body && req.body._method) {
       req.method = req.body._method.toUpperCase();
@@ -44,10 +48,12 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use("/task", todosRouter);
 
+// catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
 });
 
+// error handler
 app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
