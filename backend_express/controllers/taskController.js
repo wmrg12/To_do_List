@@ -52,7 +52,31 @@ exports.task_list = async (req, res, next) => {
   }
 
   try {
-    const tasks = await Task.find().sort({ createdAt: -1 });
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const tasks = await Task.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Task.countDocuments();
+
+    const totalPages = Math.ceil(total / limit);
+
+    const links = {
+      self: `/task?page=${page}&limit=${limit}`
+    };
+
+    if (page < totalPages) {
+      links.next = `/task?page=${page + 1}&limit=${limit}`;
+    }
+
+    if (page > 1) {
+      links.prev = `/task?page=${page - 1}&limit=${limit}`;
+    }
 
     // Generate ETag based on the MD5 of the JSON stringified tasks
     const crypto = require('crypto');
@@ -70,7 +94,7 @@ exports.task_list = async (req, res, next) => {
       req, res, 'task/list',
       { title: 'Tareas', data: tasks },
       { version: '1.0' },
-      { self: '/task' }
+      links
     );
   } catch (error) {
     renderOrJson(
@@ -81,6 +105,7 @@ exports.task_list = async (req, res, next) => {
       [{ message: error.message }],
       500
     );
+
   }
 };
 
