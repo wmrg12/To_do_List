@@ -1,13 +1,16 @@
 const Task = require("../models/task");
 
+function userFilter(req) {
+  return { user: req.user.id };
+}
+
 const renderOrJson = (req, res, view, data, metadata, links, errors = null, status = 200) => {
-  // Ensure metadata exists and includes status
+
   const responseMetadata = metadata ? { ...metadata } : {};
   if (responseMetadata.status === undefined) {
     responseMetadata.status = status;
   }
 
-  // Ensure data exists and is properly formatted
   let responseData = [];
   if (data && data.data !== undefined) {
     responseData = data.data;
@@ -17,10 +20,7 @@ const renderOrJson = (req, res, view, data, metadata, links, errors = null, stat
     responseData = [];
   }
 
-  // Ensure links is an object
   const responseLinks = links || {};
-
-  // Ensure errors is null if there is no error
   const responseErrors = errors || null;
 
   res.format({
@@ -57,12 +57,14 @@ exports.task_list = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
 
-    const tasks = await Task.find()
+    const filter = userFilter(req);
+
+    const tasks = await Task.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await Task.countDocuments();
+    const total = await Task.countDocuments(filter);
 
     const totalPages = Math.ceil(total / limit);
 
@@ -78,14 +80,12 @@ exports.task_list = async (req, res, next) => {
       links.prev = `/task?page=${page - 1}&limit=${limit}`;
     }
 
-    // Generate ETag based on the MD5 of the JSON stringified tasks
+    // etag
     const crypto = require('crypto');
     const etag = crypto.createHash('md5').update(JSON.stringify(tasks)).digest('hex');
 
-    // Set ETag header
     res.set('ETag', etag);
 
-    // Verify If-None-Match
     if (req.headers['if-none-match'] === etag) {
       return res.status(304).end();
     }
@@ -111,7 +111,7 @@ exports.task_list = async (req, res, next) => {
 
 exports.task_detail = async (req, res, next) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({ _id: req.params.id, ...userFilter(req) });
     if (!task) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -132,7 +132,6 @@ exports.task_detail = async (req, res, next) => {
       { self: `/task/${task._id}`, collection: '/task' }
     );
   } catch (error) {
-    // If CastError, it's an invalid ID format (e.g. they typed /create)
     const status = error.name === 'CastError' ? 404 : (error.status || 500);
     renderOrJson(
       req, res, 'error',
@@ -154,7 +153,8 @@ exports.task_create = async (req, res, next) => {
     const task = new Task({
       title: req.body.title,
       description: req.body.description,
-      completed: req.body.completed === 'true' || req.body.completed === true
+      completed: req.body.completed === 'true' || req.body.completed === true,
+      user: req.user.id,
     });
     const savedTask = await task.save();
     renderOrJson(
@@ -179,7 +179,7 @@ exports.task_create = async (req, res, next) => {
 
 exports.task_update_get = async (req, res, next) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({ _id: req.params.id, ...userFilter(req) });
     if (!task) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -198,7 +198,11 @@ exports.task_update = async (req, res, next) => {
       description: req.body.description !== undefined ? req.body.description : null,
       completed: req.body.completed === 'true' || req.body.completed === true
     };
-    const updatedTask = await Task.findByIdAndUpdate(req.params.id, taskData, { new: true, runValidators: true });
+    const updatedTask = await Task.findOneAndUpdate(
+      { _id: req.params.id, ...userFilter(req) },
+      taskData,
+      { new: true, runValidators: true }
+    );
     if (!updatedTask) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -236,8 +240,8 @@ exports.task_patch = async (req, res, next) => {
       updateData.completed = req.body.completed === 'true' || req.body.completed === true;
     }
 
-    const updatedTask = await Task.findByIdAndUpdate(
-      req.params.id,
+    const updatedTask = await Task.findOneAndUpdate(
+      { _id: req.params.id, ...userFilter(req) },
       { $set: updateData },
       { new: true, runValidators: true }
     );
@@ -269,7 +273,7 @@ exports.task_patch = async (req, res, next) => {
 
 exports.task_delete_get = async (req, res, next) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({ _id: req.params.id, ...userFilter(req) });
     if (!task) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -283,7 +287,10 @@ exports.task_delete_get = async (req, res, next) => {
 
 exports.task_delete = async (req, res, next) => {
   try {
-    const deletedTask = await Task.findByIdAndDelete(req.params.id);
+    const deletedTask = await Task.findOneAndDelete({
+      _id: req.params.id,
+      ...userFilter(req),
+    });
     if (!deletedTask) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
