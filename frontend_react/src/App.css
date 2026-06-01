@@ -1,5 +1,5 @@
-/* ── Reset / Base ─────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*
+{ box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: 'Segoe UI', system-ui, sans-serif;
@@ -10,14 +10,14 @@ body {
 
 #root { width: 100%; }
 
-/* ── App layout ───────────────────────────────────────────────────────────── */
+/* App layout */
 .app {
   max-width: 560px;
   margin: 0 auto;
   padding: 24px 16px 48px;
 }
 
-/* ── Header ───────────────────────────────────────────────────────────────── */
+/* Header */
 .app__header {
   text-align: center;
   margin-bottom: 28px;
@@ -45,14 +45,14 @@ body {
 .stat--pending { background: #fff3cd; color: #856404; }
 .stat--done    { background: #d1e7dd; color: #0f5132; }
 
-/* ── Main ─────────────────────────────────────────────────────────────────── */
+/* Main */
 .app__main { display: flex; flex-direction: column; gap: 20px; }
 
 .app__status { text-align: center; color: #888; }
 .app__error  { text-align: center; color: #dc3545; background: #ffeef0; padding: 10px; border-radius: 8px; }
 .app__empty  { text-align: center; color: #aaa; padding: 24px; }
 
-/* ── Formulario ───────────────────────────────────────────────────────────── */
+/* Formulario */
 .task-form {
   background: #fff;
   border-radius: 12px;
@@ -100,10 +100,10 @@ body {
   font-size: 0.85rem;
 }
 
-/* ── Lista de tareas ──────────────────────────────────────────────────────── */
+/* Lista de tareas */
 .task-list { display: flex; flex-direction: column; gap: 10px; }
 
-/* ── Tarjeta de tarea ─────────────────────────────────────────────────────── */
+/* Tarjeta de tarea */
 .task-card {
   background: #fff;
   border-radius: 10px;
@@ -187,7 +187,7 @@ body {
 .badge--pending { background: #fff3cd; color: #856404; }
 .badge--done    { background: #d1e7dd; color: #0f5132; }
 
-/* ── Botones ──────────────────────────────────────────────────────────────── */
+/* Botones */
 .btn {
   padding: 8px 16px;
   border: none;
@@ -224,17 +224,123 @@ body {
 
 .btn--sm { padding: 4px 10px; font-size: 0.78rem; }
 
-/* ── Acciones de la tarjeta ───────────────────────────────────────────────── */
+/* Acciones de la tarjeta */
 .task-card__actions {
   display: flex;
   gap: 6px;
   align-items: center;
 }
 
-/* ── Modo edición ─────────────────────────────────────────────────────────── */
+/* Modo edicion */
 .task-card--editing {
   border-left-color: #6c63ff;
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Login */
+.login-form {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-form__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.login-form__label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.login-form__input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.login-form__input:focus {
+  outline: none;
+  border-color: #6c63ff;
+}
+
+.login-form__btn {
+  margin-top: 4px;
+  padding: 10px;
+  background: #6c63ff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-form__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-form__error {
+  color: #dc3545;
+  background: #ffeef0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.login-form__success {
+  color: #0f5132;
+  background: #d1e7dd;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.login-form__switch {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+.login-form__link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #6c63ff;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.login-form__link:hover {
+  color: #5548e0;
+}
+
+.app__logout {
+  margin-top: 10px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  background: transparent;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  color: #666;
+  cursor: pointer;
+}
+
+.app__logout:hover {
+  background: #f0f0f0;
 }

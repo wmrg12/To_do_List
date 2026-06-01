@@ -1,16 +1,22 @@
+import { getToken } from "./authService";
+
 const BASE_URL = "http://localhost:3000/task";
 
-const headers = {
-  "Content-Type": "application/json",
-  Accept: "application/json",
-};
+function authHeaders() {
+  const token = getToken();
+  return {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+}
 
 // procesar respuesta 
 function handleResponse(res) {
   return res.json().then((body) => {
     if (!res.ok) {
       const msg =
-        body?.errors?.[0]?.message || `Error HTTP ${res.status}`;
+        body?.errors?.[0]?.message || body?.msg || `Error HTTP ${res.status}`;
       return Promise.reject(new Error(msg));
     }
     return body;
@@ -19,14 +25,14 @@ function handleResponse(res) {
 
 // GET /task  
 export function getTasks(page = 1, limit = 10) {
-  return fetch(`${BASE_URL}?page=${page}&limit=${limit}`, { headers })
+  return fetch(`${BASE_URL}?page=${page}&limit=${limit}`, { headers: authHeaders() })
     .then(handleResponse)
     .then((body) => body);
 }
 
 // GET /task/:id  
 export function getTaskById(id) {
-  return fetch(`${BASE_URL}/${id}`, { headers })
+  return fetch(`${BASE_URL}/${id}`, { headers: authHeaders() })
     .then(handleResponse)
     .then((body) => body.data);
 }
@@ -35,7 +41,7 @@ export function getTaskById(id) {
 export function createTask(taskData) {
   return fetch(BASE_URL, {
     method: "POST",
-    headers,
+    headers: authHeaders(),
     body: JSON.stringify(taskData),
   })
     .then(handleResponse)
@@ -46,7 +52,7 @@ export function createTask(taskData) {
 export function updateTask(id, taskData) {
   return fetch(`${BASE_URL}/${id}`, {
     method: "PUT",
-    headers,
+    headers: authHeaders(),
     body: JSON.stringify(taskData),
   })
     .then(handleResponse)
@@ -57,7 +63,7 @@ export function updateTask(id, taskData) {
 export function patchTask(id, partialData) {
   return fetch(`${BASE_URL}/${id}`, {
     method: "PATCH",
-    headers,
+    headers: authHeaders(),
     body: JSON.stringify(partialData),
   })
     .then(handleResponse)
@@ -68,7 +74,7 @@ export function patchTask(id, partialData) {
 export function deleteTask(id) {
   return fetch(`${BASE_URL}/${id}`, {
     method: "DELETE",
-    headers,
+    headers: authHeaders(),
   })
     .then(handleResponse)
     .then((body) => body.data);

@@ -28,7 +28,7 @@ export default function TaskCard({ task, onUpdated, onDeleted }) {
       .catch((err) => alert("Error: " + err.message));
   };
 
-  // Guardar ediciOn (PUT)
+  // Guardar edicion (PUT)
   const handleSave = (e) => {
     e.preventDefault();
     if (!editTitle.trim()) return;
@@ -46,7 +46,7 @@ export default function TaskCard({ task, onUpdated, onDeleted }) {
       .finally(() => setSaving(false));
   };
 
-  // Cancelar ediciOn
+  // Cancelar edicion
   const handleCancel = () => {
     setEditTitle(task.title);
     setEditDesc(task.description || "");
@@ -55,7 +55,7 @@ export default function TaskCard({ task, onUpdated, onDeleted }) {
 
   // Eliminar (DELETE)
   const handleDelete = () => {
-    if (!window.confirm(`¿Eliminar "${task.title}"?`)) return;
+    if (!window.confirm(`Eliminar "${task.title}"?`)) return;
     deleteTask(task._id)
       .then(() => onDeleted(task._id))
       .catch((err) => alert("Error al eliminar: " + err.message));
@@ -86,7 +86,7 @@ export default function TaskCard({ task, onUpdated, onDeleted }) {
         </div>
         <div className="task-card__actions">
           <button type="submit" className="btn btn--primary btn--sm" disabled={saving}>
-            {saving ? "Guardando…" : "Guardar"}
+            {saving ? "Guardando..." : "Guardar"}
           </button>
           <button type="button" className="btn btn--secondary btn--sm" onClick={handleCancel}>
             Cancelar

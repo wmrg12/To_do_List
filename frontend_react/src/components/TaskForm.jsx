@@ -29,15 +29,15 @@ export default function TaskForm({ onCreated }) {
     <form className="task-form" onSubmit={handleSubmit}>
       <h2 className="task-form__title">Nueva Tarea</h2>
 
-      {error && <p className="task-form__error">⚠ {error}</p>}
+      {error && <p className="task-form__error">{error}</p>}
 
       <div className="task-form__group">
-        <label htmlFor="task-title" className="task-form__label">Título *</label>
+        <label htmlFor="task-title" className="task-form__label">Titulo *</label>
         <input
           id="task-title"
           className="task-form__input"
           type="text"
-          placeholder="¿Qué hay que hacer?"
+          placeholder="Que hay que hacer?"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
@@ -45,7 +45,7 @@ export default function TaskForm({ onCreated }) {
       </div>
 
       <div className="task-form__group">
-        <label htmlFor="task-desc" className="task-form__label">Descripción</label>
+        <label htmlFor="task-desc" className="task-form__label">Descripcion</label>
         <textarea
           id="task-desc"
           className="task-form__textarea"
@@ -61,7 +61,7 @@ export default function TaskForm({ onCreated }) {
         className="btn btn--primary"
         disabled={loading || !title.trim()}
       >
-        {loading ? "Guardando…" : "+ Agregar Tarea"}
+        {loading ? "Guardando..." : "+ Agregar Tarea"}
       </button>
     </form>
   );
