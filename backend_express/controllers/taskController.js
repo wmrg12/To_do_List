@@ -227,6 +227,69 @@ exports.task_update = async (req, res, next) => {
   }
 };
 
+exports.task_upload = async (req, res) => {
+  try {
+
+    const task = await Task.findOne({
+      _id: req.params.id,
+      ...userFilter(req)
+    });
+    if (!task) {
+      return renderOrJson(
+        req,
+        res,
+        "error",
+        null,
+        { version: "1.0" },
+        { collection: "/task" },
+        [{ message: "Tarea no encontrada" }],
+        404
+      );
+    }
+    if (!req.file) {
+      return renderOrJson(
+        req,
+        res,
+        "error",
+        null,
+        { version: "1.0" },
+        { self: `/task/${task._id}/upload` },
+        [{ message: "No se envió ningún archivo" }],
+        400
+      );
+    }
+    task.filePath = req.file.path;
+    await task.save();
+    return renderOrJson(
+      req,
+      res,
+      "task/detail",
+      {
+        title: task.title,
+        data: task
+      },
+      { version: "1.0" },
+      {
+        self: `/task/${task._id}/upload`,
+        download: `/task/${task._id}/download`,
+        task: `/task/${task._id}`
+      }
+    );
+  } catch (error) {
+    return renderOrJson(
+      req,
+      res,
+      "error",
+      null,
+      { version: "1.0" },
+      { collection: "/task" },
+      [{ message: error.message }],
+      500
+    );
+
+  }
+};
+
 exports.task_patch = async (req, res, next) => {
   try {
     const updateData = {};

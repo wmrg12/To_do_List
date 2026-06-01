@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const taskController = require('../controllers/taskController');
 const verifyToken = require('../middleware/verifyToken');
+const upload = require('../middleware/upload');
 
 router.use(verifyToken);
 
@@ -23,6 +24,6 @@ router.patch('/:id', taskController.task_patch);
 // DELETE /task/:id -> elimina uno
 router.delete('/:id', taskController.task_delete);
 
-
+router.post('/:id/upload', upload.single('file'), taskController.task_upload);
 
 module.exports = router;
