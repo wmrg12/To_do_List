@@ -11,7 +11,6 @@ function authHeaders() {
   };
 }
 
-// procesar respuesta 
 function handleResponse(res) {
   return res.json().then((body) => {
     if (!res.ok) {
@@ -23,21 +22,21 @@ function handleResponse(res) {
   });
 }
 
-// GET /task  
+// GET /task
 export function getTasks(page = 1, limit = 10) {
   return fetch(`${BASE_URL}?page=${page}&limit=${limit}`, { headers: authHeaders() })
     .then(handleResponse)
     .then((body) => body);
 }
 
-// GET /task/:id  
+// GET /task/:id
 export function getTaskById(id) {
   return fetch(`${BASE_URL}/${id}`, { headers: authHeaders() })
     .then(handleResponse)
     .then((body) => body.data);
 }
 
-// POST /task  
+// POST /task
 export function createTask(taskData) {
   return fetch(BASE_URL, {
     method: "POST",
@@ -48,7 +47,7 @@ export function createTask(taskData) {
     .then((body) => body.data);
 }
 
-// PUT /task/:id  
+// PUT /task/:id
 export function updateTask(id, taskData) {
   return fetch(`${BASE_URL}/${id}`, {
     method: "PUT",
@@ -59,7 +58,7 @@ export function updateTask(id, taskData) {
     .then((body) => body.data);
 }
 
-// PATCH /task/:id 
+// PATCH /task/:id
 export function patchTask(id, partialData) {
   return fetch(`${BASE_URL}/${id}`, {
     method: "PATCH",
@@ -70,9 +69,36 @@ export function patchTask(id, partialData) {
     .then((body) => body.data);
 }
 
-// DELETE /task/:id  
+// DELETE /task/:id
 export function deleteTask(id) {
   return fetch(`${BASE_URL}/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  })
+    .then(handleResponse)
+    .then((body) => body.data);
+}
+
+// POST /task/:id/upload
+export function uploadFile(taskId, file) {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append("file", file);
+  return fetch(`${BASE_URL}/${taskId}/upload`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: formData,
+  })
+    .then(handleResponse)
+    .then((body) => body.data);
+}
+
+// DELETE /task/:id/file
+export function deleteFile(taskId) {
+  return fetch(`${BASE_URL}/${taskId}/file`, {
     method: "DELETE",
     headers: authHeaders(),
   })
