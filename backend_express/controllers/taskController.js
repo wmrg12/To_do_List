@@ -1,4 +1,5 @@
 const Task = require("../models/task");
+const path = require('path');
 
 function userFilter(req) {
   return { user: req.user.id };
@@ -331,6 +332,60 @@ exports.task_patch = async (req, res, next) => {
       [{ message: error.message }],
       status
     );
+  }
+};
+
+exports.task_download = async (req, res) => {
+  try {
+
+    const task = await Task.findOne({
+      _id: req.params.id,
+      ...userFilter(req)
+    });
+
+    if (!task) {
+      return renderOrJson(
+        req,
+        res,
+        'error',
+        null,
+        { version: '1.0' },
+        { collection: '/task' },
+        [{ message: 'Tarea no encontrada' }],
+        404
+      );
+    }
+
+    if (!task.filePath) {
+      return renderOrJson(
+        req,
+        res,
+        'error',
+        null,
+        { version: '1.0' },
+        { task: `/task/${task._id}` },
+        [{ message: 'La tarea no tiene archivo adjunto' }],
+        404
+      );
+    }
+
+    return res.download(
+      path.resolve(task.filePath)
+    );
+
+  } catch (error) {
+
+    return renderOrJson(
+      req,
+      res,
+      'error',
+      null,
+      { version: '1.0' },
+      { collection: '/task' },
+      [{ message: error.message }],
+      500
+    );
+
   }
 };
 
