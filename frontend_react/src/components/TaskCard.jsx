@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { patchTask, deleteTask, updateTask, uploadFile, deleteFile } from "../services/taskService";
+import { patchTask, deleteTask, updateTask, uploadFile, deleteFile, downloadFile } from "../services/taskService";
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
@@ -131,6 +131,10 @@ export default function TaskCard({ task, onUpdated, onDeleted }) {
         {task.filePath ? (
           <div className="task-card__file-info">
             <span> + Archivo adjunto</span>
+            <button className="btn btn--danger btn--sm" onClick={() => downloadFile(task._id).catch(err => alert("Error al descargar: " + err.message))}>
+              Descargar archivo
+            </button>
+
             <button className="btn btn--danger btn--sm" onClick={handleDeleteFile}>
               Eliminar archivo
             </button>

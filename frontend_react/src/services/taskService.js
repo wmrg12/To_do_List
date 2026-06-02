@@ -105,3 +105,34 @@ export function deleteFile(taskId) {
     .then(handleResponse)
     .then((body) => body.data);
 }
+
+export async function downloadFile(taskId) {
+  const token = getToken();
+  const response = await fetch(`${BASE_URL}/${taskId}/download`, {
+    headers: {
+      Accept: "application/octet-stream",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(
+      error?.errors?.[0]?.message || "Error al descargar archivo"
+    );
+  }
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  const disposition = response.headers.get("Content-Disposition");
+  let filename = "archivo";
+  if (disposition) {
+    const match = disposition.match(/filename="?(.+)"?/);
+    if (match) filename = match[1];
+  }
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
