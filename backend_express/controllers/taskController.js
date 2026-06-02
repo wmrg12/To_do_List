@@ -331,6 +331,55 @@ exports.task_download = async (req, res) => {
   }
 };
 
+exports.task_delete_file = async (req, res) => {
+  try {
+    const task = await Task.findOne({
+      _id: req.params.id,
+      ...userFilter(req)
+    });
+    if (!task) {
+      return renderOrJson(
+        req, res, 'error', null,
+        { version: '1.0' },
+        { collection: '/task' },
+        [{ message: 'Tarea no encontrada' }],
+        404
+      );
+    }
+    if (!task.filePath) {
+      return renderOrJson(
+        req, res, 'error', null,
+        { version: '1.0' },
+        { task: `/task/${task._id}` },
+        [{ message: 'La tarea no tiene archivo adjunto' }],
+        404
+      );
+    }
+
+    const filePath = path.resolve(task.filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    task.filePath = null;
+    await task.save();
+
+    return renderOrJson(
+      req, res, 'task/detail',
+      { title: task.title, data: task },
+      { version: '1.0' },
+      { self: `/task/${task._id}`, upload: `/task/${task._id}/upload`}
+    );
+  } catch (error) {
+    return renderOrJson(
+      req, res, 'error', null,
+      { version: '1.0' },
+      { collection: '/task' },
+      [{ message: error.message }],
+      500
+    );
+  }
+};
+
 exports.task_delete_get = async (req, res, next) => {
   try {
     const task = await Task.findOne({ _id: req.params.id, ...userFilter(req) });

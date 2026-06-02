@@ -12,11 +12,14 @@ router.get('/', taskController.task_list);
 // POST /task -> crea uno
 router.post('/', taskController.task_create);
 
-// GET /task/:id -> obtiene uno
-router.get('/:id', taskController.task_detail);
-
 // GET /task/:id/download -> descarga el archivo asociado a la tarea
 router.get('/:id/download', taskController.task_download);
+
+// DELETE /task/:id/file -> elimina el archivo asociado a la tarea
+router.delete('/:id/file', taskController.task_delete_file);
+
+// GET /task/:id -> obtiene uno
+router.get('/:id', taskController.task_detail);
 
 // PUT /task/:id -> actualiza uno
 router.put('/:id', taskController.task_update);
