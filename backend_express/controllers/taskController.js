@@ -1,12 +1,13 @@
-const Task = require("../models/task");
 const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
+const Task = require("../models/task");
 
 function userFilter(req) {
   return { user: req.user.id };
 }
 
 const renderOrJson = (req, res, view, data, metadata, links, errors = null, status = 200) => {
-
   const responseMetadata = metadata ? { ...metadata } : {};
   if (responseMetadata.status === undefined) {
     responseMetadata.status = status;
@@ -16,7 +17,6 @@ const renderOrJson = (req, res, view, data, metadata, links, errors = null, stat
   if (data && data.data !== undefined) {
     responseData = data.data;
   }
-  
   if (responseData === null || responseData === undefined) {
     responseData = [];
   }
@@ -53,11 +53,9 @@ exports.task_list = async (req, res, next) => {
   }
 
   try {
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
-
     const filter = userFilter(req);
 
     const tasks = await Task.find(filter)
@@ -66,37 +64,19 @@ exports.task_list = async (req, res, next) => {
       .limit(limit);
 
     const total = await Task.countDocuments(filter);
-
     const totalPages = Math.ceil(total / limit);
 
-    const links = {
-      self: `/task?page=${page}&limit=${limit}`
-    };
+    const links = { self: `/task?page=${page}&limit=${limit}` };
+    if (page < totalPages) links.next = `/task?page=${page + 1}&limit=${limit}`;
+    if (page > 1) links.prev = `/task?page=${page - 1}&limit=${limit}`;
 
-    if (page < totalPages) {
-      links.next = `/task?page=${page + 1}&limit=${limit}`;
-    }
-
-    if (page > 1) {
-      links.prev = `/task?page=${page - 1}&limit=${limit}`;
-    }
-
-    // etag
-    const crypto = require('crypto');
     const etag = crypto.createHash('md5').update(JSON.stringify(tasks)).digest('hex');
-
     res.set('ETag', etag);
-
     if (req.headers['if-none-match'] === etag) {
       return res.status(304).end();
     }
 
-    renderOrJson(
-      req, res, 'task/list',
-      { title: 'Tareas', data: tasks },
-      { version: '1.0' },
-      links
-    );
+    renderOrJson(req, res, 'task/list', { title: 'Tareas', data: tasks }, { version: '1.0' }, links);
   } catch (error) {
     renderOrJson(
       req, res, 'error',
@@ -106,7 +86,6 @@ exports.task_list = async (req, res, next) => {
       [{ message: error.message }],
       500
     );
-
   }
 };
 
@@ -230,76 +209,49 @@ exports.task_update = async (req, res, next) => {
 
 exports.task_upload = async (req, res) => {
   try {
-
-    const task = await Task.findOne({
-      _id: req.params.id,
-      ...userFilter(req)
-    });
+    const task = await Task.findOne({ _id: req.params.id, ...userFilter(req) });
     if (!task) {
       return renderOrJson(
-        req,
-        res,
-        "error",
-        null,
-        { version: "1.0" },
-        { collection: "/task" },
-        [{ message: "Tarea no encontrada" }],
+        req, res, 'error', null,
+        { version: '1.0' },
+        { collection: '/task' },
+        [{ message: 'Tarea no encontrada' }],
         404
       );
     }
     if (!req.file) {
       return renderOrJson(
-        req,
-        res,
-        "error",
-        null,
-        { version: "1.0" },
+        req, res, 'error', null,
+        { version: '1.0' },
         { self: `/task/${task._id}/upload` },
-        [{ message: "No se envió ningún archivo" }],
+        [{ message: 'No se envió ningún archivo' }],
         400
       );
     }
     task.filePath = req.file.path;
     await task.save();
     return renderOrJson(
-      req,
-      res,
-      "task/detail",
-      {
-        title: task.title,
-        data: task
-      },
-      { version: "1.0" },
-      {
-        self: `/task/${task._id}/upload`,
-        download: `/task/${task._id}/download`,
-        task: `/task/${task._id}`
-      }
+      req, res, 'task/detail',
+      { title: task.title, data: task },
+      { version: '1.0' },
+      { self: `/task/${task._id}/upload`, download: `/task/${task._id}/download`, task: `/task/${task._id}` }
     );
   } catch (error) {
     return renderOrJson(
-      req,
-      res,
-      "error",
-      null,
-      { version: "1.0" },
-      { collection: "/task" },
+      req, res, 'error', null,
+      { version: '1.0' },
+      { collection: '/task' },
       [{ message: error.message }],
       500
     );
-
   }
 };
 
 exports.task_patch = async (req, res, next) => {
   try {
     const updateData = {};
-    if (req.body.title !== undefined) {
-      updateData.title = req.body.title;
-    }
-    if (req.body.description !== undefined) {
-      updateData.description = req.body.description;
-    }
+    if (req.body.title !== undefined) updateData.title = req.body.title;
+    if (req.body.description !== undefined) updateData.description = req.body.description;
     if (req.body.completed !== undefined) {
       updateData.completed = req.body.completed === 'true' || req.body.completed === true;
     }
@@ -309,7 +261,6 @@ exports.task_patch = async (req, res, next) => {
       { $set: updateData },
       { new: true, runValidators: true }
     );
-
     if (!updatedTask) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -337,31 +288,19 @@ exports.task_patch = async (req, res, next) => {
 
 exports.task_download = async (req, res) => {
   try {
-
-    const task = await Task.findOne({
-      _id: req.params.id,
-      ...userFilter(req)
-    });
-
+    const task = await Task.findOne({ _id: req.params.id, ...userFilter(req) });
     if (!task) {
       return renderOrJson(
-        req,
-        res,
-        'error',
-        null,
+        req, res, 'error', null,
         { version: '1.0' },
         { collection: '/task' },
         [{ message: 'Tarea no encontrada' }],
         404
       );
     }
-
     if (!task.filePath) {
       return renderOrJson(
-        req,
-        res,
-        'error',
-        null,
+        req, res, 'error', null,
         { version: '1.0' },
         { task: `/task/${task._id}` },
         [{ message: 'La tarea no tiene archivo adjunto' }],
@@ -369,23 +308,26 @@ exports.task_download = async (req, res) => {
       );
     }
 
-    return res.download(
-      path.resolve(task.filePath)
-    );
+    const filePath = path.resolve(task.filePath);
+    if (!fs.existsSync(filePath)) {
+      return renderOrJson(
+        req, res, 'error', null,
+        { version: '1.0' },
+        { task: `/task/${task._id}`, collection: '/task' },
+        [{ message: 'Archivo no encontrado' }],
+        404
+      );
+    }
 
+    return res.download(filePath);
   } catch (error) {
-
     return renderOrJson(
-      req,
-      res,
-      'error',
-      null,
+      req, res, 'error', null,
       { version: '1.0' },
       { collection: '/task' },
       [{ message: error.message }],
       500
     );
-
   }
 };
 
@@ -405,10 +347,7 @@ exports.task_delete_get = async (req, res, next) => {
 
 exports.task_delete = async (req, res, next) => {
   try {
-    const deletedTask = await Task.findOneAndDelete({
-      _id: req.params.id,
-      ...userFilter(req),
-    });
+    const deletedTask = await Task.findOneAndDelete({ _id: req.params.id, ...userFilter(req) });
     if (!deletedTask) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -439,8 +378,7 @@ exports.task_delete = async (req, res, next) => {
   } catch (error) {
     const status = error.status || 500;
     renderOrJson(
-      req, res, 'error',
-      null,
+      req, res, 'error', null,
       { version: '1.0' },
       { self: `/task/${req.params.id}` },
       [{ message: error.message }],
@@ -448,5 +386,3 @@ exports.task_delete = async (req, res, next) => {
     );
   }
 };
-
-
