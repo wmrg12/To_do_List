@@ -1,6 +1,6 @@
 import { getToken } from "./authService";
 
-const BASE_URL = "http://localhost:3000/task";
+const BASE_URL = "https://localhost:3000/task";
 
 function authHeaders() {
   const token = getToken();

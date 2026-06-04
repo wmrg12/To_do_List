@@ -1,4 +1,4 @@
-const AUTH_BASE_URL = "http://localhost:3000/api/auth";
+const AUTH_BASE_URL = "https://localhost:3000/api/auth";
 
 export function getToken() {
   return localStorage.getItem("token");
