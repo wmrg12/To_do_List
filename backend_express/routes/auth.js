@@ -15,9 +15,10 @@ router.post('/register', async (req, res) => {
         const hash = await bcrypt.hash(password, salt);
 
         user = new User({ email, password: hash });
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        user.token = token;
         await user.save();
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
         res.json({ token });
     } catch (err) {
         console.error('Register error:', err.message);
@@ -36,6 +37,9 @@ router.post('/login', async (req, res) => {
         if (!match) return res.status(401).json({ msg: 'Credenciales invalidas' });
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        user.token = token;
+        await user.save();
+        
         res.json({ token });
     } catch (err) {
         console.error('Login error:', err.message);
