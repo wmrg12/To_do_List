@@ -35,8 +35,8 @@ db.once("open", () => console.log("MongoDB conectado"));
 // Create HTTPS server
 
 const options = {
-  key: fs.readFileSync(path.join(__dirname, '../key.pem')),
-  cert: fs.readFileSync(path.join(__dirname, '../cert.pem'))
+  key: fs.readFileSync(path.join(__dirname, '../../certs/key.pem')),
+  cert: fs.readFileSync(path.join(__dirname, '../../certs/cert.pem'))
 };
 
 var server = https.createServer(options, app);
