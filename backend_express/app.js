@@ -11,6 +11,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const todosRouter = require("./routes/task");
 const authRoutes = require('./routes/auth');
+const fileRoutes = require("./routes/file");
 
 var app = express();
 
@@ -25,7 +26,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/auth', authRoutes);
-
+app.use('/api/files', fileRoutes);
 // Configuracion de method-override
 let methodOverride;
 try {
