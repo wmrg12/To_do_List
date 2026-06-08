@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { patchTask, deleteTask, updateTask, uploadFile, deleteFile, downloadFile } from "../services/taskService";
+import { patchTask, deleteTask, updateTask } from "../services/taskService";
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
@@ -16,8 +16,6 @@ export default function TaskCard({ task, onUpdated, onDeleted }) {
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDesc, setEditDesc] = useState(task.description || "");
   const [saving, setSaving] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
 
   const handleToggle = () => {
     patchTask(task._id, { completed: !task.completed })
@@ -53,25 +51,6 @@ export default function TaskCard({ task, onUpdated, onDeleted }) {
     deleteTask(task._id)
       .then(() => onDeleted(task._id))
       .catch((err) => alert("Error al eliminar: " + err.message));
-  };
-
-  const handleUpload = () => {
-    if (!selectedFile) return;
-    setUploading(true);
-    uploadFile(task._id, selectedFile)
-      .then((updated) => {
-        onUpdated(updated);
-        setSelectedFile(null);
-      })
-      .catch((err) => alert("Error al subir archivo: " + err.message))
-      .finally(() => setUploading(false));
-  };
-
-  const handleDeleteFile = () => {
-    if (!window.confirm("Eliminar el archivo adjunto?")) return;
-    deleteFile(task._id)
-      .then((updated) => onUpdated(updated))
-      .catch((err) => alert("Error al eliminar archivo: " + err.message));
   };
 
   if (editing) {
@@ -126,35 +105,6 @@ export default function TaskCard({ task, onUpdated, onDeleted }) {
       )}
 
       <p className="task-card__date">Creada: {formatDate(task.createdAt)}</p>
-
-      <div className="task-card__file">
-        {task.filePath ? (
-          <div className="task-card__file-info">
-            <span> + Archivo adjunto</span>
-            <button className="btn btn--danger btn--sm" onClick={() => downloadFile(task._id).catch(err => alert("Error al descargar: " + err.message))}>
-              Descargar archivo
-            </button>
-
-            <button className="btn btn--danger btn--sm" onClick={handleDeleteFile}>
-              Eliminar archivo
-            </button>
-          </div>
-        ) : (
-          <div className="task-card__file-upload">
-            <input
-              type="file"
-              onChange={(e) => setSelectedFile(e.target.files[0])}
-            />
-            <button
-              className="btn btn--secondary btn--sm"
-              onClick={handleUpload}
-              disabled={!selectedFile || uploading}
-            >
-              {uploading ? "Subiendo..." : "Subir archivo"}
-            </button>
-          </div>
-        )}
-      </div>
 
       <div className="task-card__footer">
         <span className={`task-card__badge ${task.completed ? "badge--done" : "badge--pending"}`}>
