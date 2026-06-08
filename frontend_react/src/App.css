@@ -335,6 +335,10 @@ body {
   color: #555;
 }
 
+.login-form__group {
+  margin-bottom: 10px;
+}
+
 .login-form__label {
   display: block;
   font-size: 0.8rem;
@@ -407,6 +411,26 @@ body {
 
 .login-form__link:hover {
   color: #5548e0;
+}
+
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.app--auth {
+  padding-top: 60px;
+}
+
+.app--auth .app__header {
+  margin-bottom: 10px;
+}
+
+.auth-page .login-form {
+  width: 100%;
+  max-width: 450px;
 }
 
 .file-manager {

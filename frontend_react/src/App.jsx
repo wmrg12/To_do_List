@@ -101,11 +101,11 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <div className="app">
+      <div className="app app--auth">
         <header className="app__header">
           <h1 className="app__title">To-Do List</h1>
         </header>
-        <main className="app__main">
+        <main className="auth-page">
           <LoginForm onLogin={handleLogin} />
         </main>
       </div>
