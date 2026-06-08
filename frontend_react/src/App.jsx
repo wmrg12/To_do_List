@@ -4,6 +4,7 @@ import { getTasks } from "./services/taskService";
 import LoginForm from "./components/LoginForm";
 import TaskForm from "./components/TaskForm";
 import TaskCard from "./components/TaskCard";
+import FileManager from "./components/FileManager";
 import "./App.css";
 
 function TodoDashboard({ onLogout }) {
@@ -61,27 +62,28 @@ function TodoDashboard({ onLogout }) {
       </header>
 
       <main className="app__main">
-        <TaskForm onCreated={handleCreated} />
+        <section className="tasks-section">
+          <TaskForm onCreated={handleCreated} />
+          {loading && <p className="app__status">Cargando tareas...</p>}
+          {error && <p className="app__error">{error}</p>}
+          {!loading && !error && tasks.length === 0 && (
+            <p className="app__empty">No hay tareas aun. Crea una!!!!</p>
+          )}
 
-        {loading && <p className="app__status">Cargando tareas...</p>}
-        {error && <p className="app__error">{error}</p>}
-
-        {!loading && !error && tasks.length === 0 && (
-          <p className="app__empty">No hay tareas aun. Crea una!!!!</p>
-        )}
-
-        <div className="task-list">
+          <div className="task-list">
           {tasks.map((task) => (
-            <TaskCard
-              key={task._id}
-              task={task}
-              onUpdated={handleUpdated}
-              onDeleted={handleDeleted}
-            />
-          ))}
-        </div>
-      </main>
-    </div>
+          <TaskCard
+            key={task._id}
+            task={task}
+            onUpdated={handleUpdated}
+            onDeleted={handleDeleted}
+          />
+        ))}
+      </div>
+    </section>
+    <FileManager />
+  </main>
+  </div>
   );
 }
 
