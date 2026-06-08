@@ -1,24 +1,47 @@
+const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
 const Task = require("../models/task");
 
+function userFilter(req) {
+  return { user: req.user.id };
+}
+
 const renderOrJson = (req, res, view, data, metadata, links, errors = null, status = 200) => {
+  const responseMetadata = metadata ? { ...metadata } : {};
+  if (responseMetadata.status === undefined) {
+    responseMetadata.status = status;
+  }
+
+  let responseData = [];
+  if (data && data.data !== undefined) {
+    responseData = data.data;
+  }
+  if (responseData === null || responseData === undefined) {
+    responseData = [];
+  }
+
+  const responseLinks = links || {};
+  const responseErrors = errors || null;
+
   res.format({
     html: () => {
       res.status(status).render(view, data);
     },
     json: () => {
       res.status(status).json({
-        metadata,
-        data: data.data,
-        links,
-        errors
+        metadata: responseMetadata,
+        data: responseData,
+        links: responseLinks,
+        errors: responseErrors
       });
     },
     default: () => {
       res.status(status).json({
-        metadata,
-        data: data.data,
-        links,
-        errors
+        metadata: responseMetadata,
+        data: responseData,
+        links: responseLinks,
+        errors: responseErrors
       });
     }
   });
@@ -30,13 +53,30 @@ exports.task_list = async (req, res, next) => {
   }
 
   try {
-    const tasks = await Task.find().sort({ createdAt: -1 });
-    renderOrJson(
-      req, res, 'task/list',
-      { title: 'Tareas', data: tasks },
-      { version: '1.0' },
-      { self: '/task' }
-    );
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+    const filter = userFilter(req);
+
+    const tasks = await Task.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Task.countDocuments(filter);
+    const totalPages = Math.ceil(total / limit);
+
+    const links = { self: `/task?page=${page}&limit=${limit}` };
+    if (page < totalPages) links.next = `/task?page=${page + 1}&limit=${limit}`;
+    if (page > 1) links.prev = `/task?page=${page - 1}&limit=${limit}`;
+
+    const etag = crypto.createHash('md5').update(JSON.stringify(tasks)).digest('hex');
+    res.set('ETag', etag);
+    if (req.headers['if-none-match'] === etag) {
+      return res.status(304).end();
+    }
+
+    renderOrJson(req, res, 'task/list', { title: 'Tareas', data: tasks }, { version: '1.0' }, links);
   } catch (error) {
     renderOrJson(
       req, res, 'error',
@@ -51,7 +91,7 @@ exports.task_list = async (req, res, next) => {
 
 exports.task_detail = async (req, res, next) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({ _id: req.params.id, ...userFilter(req) });
     if (!task) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -72,7 +112,6 @@ exports.task_detail = async (req, res, next) => {
       { self: `/task/${task._id}`, collection: '/task' }
     );
   } catch (error) {
-    // If CastError, it's an invalid ID format (e.g. they typed /create)
     const status = error.name === 'CastError' ? 404 : (error.status || 500);
     renderOrJson(
       req, res, 'error',
@@ -94,7 +133,8 @@ exports.task_create = async (req, res, next) => {
     const task = new Task({
       title: req.body.title,
       description: req.body.description,
-      completed: req.body.completed === 'true' || req.body.completed === true
+      completed: req.body.completed === 'true' || req.body.completed === true,
+      user: req.user.id,
     });
     const savedTask = await task.save();
     renderOrJson(
@@ -119,7 +159,7 @@ exports.task_create = async (req, res, next) => {
 
 exports.task_update_get = async (req, res, next) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({ _id: req.params.id, ...userFilter(req) });
     if (!task) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -135,10 +175,14 @@ exports.task_update = async (req, res, next) => {
   try {
     const taskData = {
       title: req.body.title,
-      description: req.body.description,
+      description: req.body.description !== undefined ? req.body.description : null,
       completed: req.body.completed === 'true' || req.body.completed === true
     };
-    const updatedTask = await Task.findByIdAndUpdate(req.params.id, taskData, { new: true });
+    const updatedTask = await Task.findOneAndUpdate(
+      { _id: req.params.id, ...userFilter(req) },
+      taskData,
+      { new: true, runValidators: true }
+    );
     if (!updatedTask) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -163,9 +207,48 @@ exports.task_update = async (req, res, next) => {
   }
 };
 
+exports.task_patch = async (req, res, next) => {
+  try {
+    const updateData = {};
+    if (req.body.title !== undefined) updateData.title = req.body.title;
+    if (req.body.description !== undefined) updateData.description = req.body.description;
+    if (req.body.completed !== undefined) {
+      updateData.completed = req.body.completed === 'true' || req.body.completed === true;
+    }
+
+    const updatedTask = await Task.findOneAndUpdate(
+      { _id: req.params.id, ...userFilter(req) },
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+    if (!updatedTask) {
+      const err = new Error('Tarea no encontrada');
+      err.status = 404;
+      throw err;
+    }
+
+    renderOrJson(
+      req, res, 'task/detail',
+      { title: updatedTask.title, data: updatedTask },
+      { version: '1.0' },
+      { self: `/task/${updatedTask._id}`, collection: '/task' }
+    );
+  } catch (error) {
+    const status = error.status || 400;
+    renderOrJson(
+      req, res, 'error',
+      { message: error.message, error, data: null },
+      { version: '1.0' },
+      { self: `/task/${req.params.id}` },
+      [{ message: error.message }],
+      status
+    );
+  }
+};
+
 exports.task_delete_get = async (req, res, next) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({ _id: req.params.id, ...userFilter(req) });
     if (!task) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -179,7 +262,7 @@ exports.task_delete_get = async (req, res, next) => {
 
 exports.task_delete = async (req, res, next) => {
   try {
-    const deletedTask = await Task.findByIdAndDelete(req.params.id);
+    const deletedTask = await Task.findOneAndDelete({ _id: req.params.id, ...userFilter(req) });
     if (!deletedTask) {
       const err = new Error('Tarea no encontrada');
       err.status = 404;
@@ -192,16 +275,16 @@ exports.task_delete = async (req, res, next) => {
       },
       json: () => {
         res.status(200).json({
-          metadata: { version: '1.0' },
-          data: deletedTask,
+          metadata: { version: '1.0', status: 200 },
+          data: deletedTask || [],
           links: { collection: '/task' },
           errors: null
         });
       },
       default: () => {
         res.status(200).json({
-          metadata: { version: '1.0' },
-          data: deletedTask,
+          metadata: { version: '1.0', status: 200 },
+          data: deletedTask || [],
           links: { collection: '/task' },
           errors: null
         });
@@ -210,8 +293,7 @@ exports.task_delete = async (req, res, next) => {
   } catch (error) {
     const status = error.status || 500;
     renderOrJson(
-      req, res, 'error',
-      { message: error.message, error, data: null },
+      req, res, 'error', null,
       { version: '1.0' },
       { self: `/task/${req.params.id}` },
       [{ message: error.message }],
